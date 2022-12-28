@@ -41,11 +41,11 @@ COLOR_IMAGE* readPPM(char* fname) {
 
 	char* num;
 	fgets(buffer, MAX_LINE_LENGTH, fp);
-	//if(buffer[0] == '#') fgets(buffer, MAX_LINE_LENGTH, fp);
+	if(buffer[0] == '#') fgets(buffer, MAX_LINE_LENGTH, fp);
 
 	if (strlen(buffer) <= 3) {
 		fgets(buffer, MAX_LINE_LENGTH, fp);
-		//if (buffer[0] == '#') fgets(buffer, MAX_LINE_LENGTH, fp);
+		if (buffer[0] == '#') fgets(buffer, MAX_LINE_LENGTH, fp);
 	}
 
 	int i = 0;
@@ -59,6 +59,7 @@ COLOR_IMAGE* readPPM(char* fname) {
 		{
 			if(flag)
 				fgets(buffer, MAX_LINE_LENGTH, fp);
+			if (buffer[0] == '#') fgets(buffer, MAX_LINE_LENGTH, fp);
 			flag = true;	
 		}
 	}
