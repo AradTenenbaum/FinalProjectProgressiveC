@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include "objects.h"
 
 void main() {
-	printf("test");
+	COLOR_IMAGE* ci;
+	ci = readPPM("test1.ppm");
+	printColorImagePixels(ci);
 }
