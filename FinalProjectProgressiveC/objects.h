@@ -48,5 +48,7 @@ RGB** memoryAllocationMultiPixelArray(int width, int height);
 COLOR_IMAGE* readPPM(char* fname);
 GRAY_IMAGE* readPGM(char* fname);
 void printColorImagePixels(COLOR_IMAGE* colorImage);
+void printGrayImagePixels(GRAY_IMAGE* grayImage);
+SEGMENT findSingleSegment(GRAY_IMAGE* img, IMG_POS start, unsigned char threshold);
 
 #endif

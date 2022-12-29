@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "objects.h"
 
 void memoryAndFileValidation(void* ptr) {
@@ -63,4 +64,22 @@ char* simplestrtok(char* str, char delimiter)
 	save++;
 
 	return start;
+}
+
+char** memoryAllocationMultiCharArray(int width, int height) {
+	char** pixels;
+	pixels = (char**)malloc(sizeof(char*) * height);
+	for (int i = 0; i < height; i++) {
+		pixels[i] = (char*)malloc(sizeof(char) * width);
+	}
+	return pixels;
+}
+
+bool** memoryAllocationMultiBoolArray(int width, int height) {
+	bool** flags;
+	flags = (bool**)malloc(sizeof(bool*) * height);
+	for (int i = 0; i < height; i++) {
+		flags[i] = (bool*)calloc(width, sizeof(bool));
+	}
+	return flags;
 }
