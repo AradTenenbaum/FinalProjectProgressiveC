@@ -44,11 +44,23 @@ typedef struct segment {
 	TNODE* root;
 }SEGMENT;
 
+typedef struct img_pos_node {
+	IMG_POS position;
+	struct img_pos_node* next, * prev;
+}IMG_POS_NODE;
+
+typedef struct img_pos_list {
+	IMG_POS_NODE* head;
+	IMG_POS_NODE* tail;
+}IMG_POS_LIST;
+
 RGB** memoryAllocationMultiPixelArray(int width, int height);
 COLOR_IMAGE* readPPM(char* fname);
 GRAY_IMAGE* readPGM(char* fname);
 void printColorImagePixels(COLOR_IMAGE* colorImage);
 void printGrayImagePixels(GRAY_IMAGE* grayImage);
 SEGMENT findSingleSegment(GRAY_IMAGE* img, IMG_POS start, unsigned char threshold);
+void printSegment(SEGMENT s, GRAY_IMAGE grayImage);
+int findAllSegments(GRAY_IMAGE* img, unsigned char threshold, IMG_POS_LIST** segments);
 
 #endif

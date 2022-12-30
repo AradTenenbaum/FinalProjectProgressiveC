@@ -7,10 +7,9 @@ void main() {
 	//printGrayImagePixels(gi);
 
 	IMG_POS p;
-	p[0] = 3;
-	p[1] = 3;
+	p[0] = 0;
+	p[1] = 8;
 	SEGMENT s = findSingleSegment(gi, p, 2);
-	
-	printf("s");
+	printSegment(s, *gi);
 
 }

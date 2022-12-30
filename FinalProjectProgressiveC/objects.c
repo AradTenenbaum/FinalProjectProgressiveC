@@ -5,6 +5,9 @@
 #include <stdbool.h>
 #include "utils.h"
 
+// Forward declerations
+bool isEmptyList(TNODE_LIST* lst);
+
 RGB** memoryAllocationMultiPixelArray(int width, int height) {
 	RGB** pixels;
 	pixels = (RGB**)malloc(sizeof(RGB*) * height);
@@ -33,6 +36,35 @@ void printGrayImagePixels(GRAY_IMAGE* grayImage) {
 		}
 		printf("\n");
 	}
+}
+
+void printList(TNODE_LIST lst) {
+	TNODE_LNODE* curr = lst.head;
+	while (curr != NULL)
+	{
+		printf("(%d,%d) ", curr->node->position[0], curr->node->position[1]);
+		curr = curr->next;
+	}
+	printf("\n");
+}
+
+void printSegmentHelper(TNODE* root, GRAY_IMAGE grayImage) {
+	TNODE_LNODE* curr = root->nextPossiblePositions.head;
+	if (!isEmptyList(&(root->nextPossiblePositions))) {
+
+		printf("root: (%d,%d)\n", root->position[0], root->position[1]);
+		printf("children: ");
+		printList(root->nextPossiblePositions);
+
+		while (curr != NULL) {
+			printSegmentHelper(curr->node, grayImage);
+			curr = curr->next;
+		}
+	}
+}
+
+void printSegment(SEGMENT s, GRAY_IMAGE grayImage) {
+	printSegmentHelper(s.root, grayImage);
 }
 
 
@@ -255,10 +287,10 @@ IMG_POS* newPosition(IMG_POS current, unsigned short addRow, unsigned short addC
 }
 
 TNODE* findSingleSegmentHelper(GRAY_IMAGE* img, IMG_POS start
-, char min, char max, bool** flags, SEGMENT* segment) {
+, char min, char max, bool** flags) {
 
-	if (start[0] < 0 || start[0] > img->rows ||
-		start[1] < 0 || start[1] > img->cols || 
+	if (start[0] < 0 || start[0] >= img->rows ||
+		start[1] < 0 || start[1] >= img->cols || 
 		img->pixels[start[0]][start[1]] < min || 
 		img->pixels[start[0]][start[1]] > max ||
 		flags[start[0]][start[1]]) {
@@ -268,24 +300,27 @@ TNODE* findSingleSegmentHelper(GRAY_IMAGE* img, IMG_POS start
 		flags[start[0]][start[1]] = true;
 	}
 
-	insertDataToEndList(&(segment->root->nextPossiblePositions), 
-		findSingleSegmentHelper(img, *newPosition(start, 1, 0), min, max, flags, segment));
-	insertDataToEndList(&(segment->root->nextPossiblePositions),
-		findSingleSegmentHelper(img, *newPosition(start, 1, 1), min, max, flags, segment));
-	insertDataToEndList(&(segment->root->nextPossiblePositions),
-		findSingleSegmentHelper(img, *newPosition(start, 0, 1), min, max, flags, segment));
-	insertDataToEndList(&(segment->root->nextPossiblePositions),
-		findSingleSegmentHelper(img, *newPosition(start, -1, 0), min, max, flags, segment));
-	insertDataToEndList(&(segment->root->nextPossiblePositions),
-		findSingleSegmentHelper(img, *newPosition(start, -1, -1), min, max, flags, segment));
-	insertDataToEndList(&(segment->root->nextPossiblePositions),
-		findSingleSegmentHelper(img, *newPosition(start, 0, -1), min, max, flags, segment));
-	insertDataToEndList(&(segment->root->nextPossiblePositions),
-		findSingleSegmentHelper(img, *newPosition(start, 1, -1), min, max, flags, segment));
-	insertDataToEndList(&(segment->root->nextPossiblePositions),
-		findSingleSegmentHelper(img, *newPosition(start, -1, 1), min, max, flags, segment));
+	TNODE_LIST lst;
+	makeEmptyList(&lst);
 
-	return CreateTreeNode(start, segment->root->nextPossiblePositions);
+	insertDataToEndList(&(lst),
+		findSingleSegmentHelper(img, *newPosition(start, 1, 0), min, max, flags));
+	insertDataToEndList(&(lst),
+		findSingleSegmentHelper(img, *newPosition(start, 1, 1), min, max, flags));
+	insertDataToEndList(&(lst),
+		findSingleSegmentHelper(img, *newPosition(start, 0, 1), min, max, flags));
+	insertDataToEndList(&(lst),
+		findSingleSegmentHelper(img, *newPosition(start, -1, 0), min, max, flags));
+	insertDataToEndList(&(lst),
+		findSingleSegmentHelper(img, *newPosition(start, -1, -1), min, max, flags));
+	insertDataToEndList(&(lst),
+		findSingleSegmentHelper(img, *newPosition(start, 0, -1), min, max, flags));
+	insertDataToEndList(&(lst),
+		findSingleSegmentHelper(img, *newPosition(start, 1, -1), min, max, flags));
+	insertDataToEndList(&(lst),
+		findSingleSegmentHelper(img, *newPosition(start, -1, 1), min, max, flags));
+
+	return CreateTreeNode(start, lst);
 
 }
 
@@ -294,13 +329,47 @@ SEGMENT findSingleSegment(GRAY_IMAGE* img, IMG_POS start, unsigned char threshol
 
 	bool** flags = memoryAllocationMultiBoolArray(img->cols, img->rows);
 
-	TNODE_LIST lst;
-	makeEmptyList(&lst);
-
 	segment.root = findSingleSegmentHelper(img, start, img->pixels[start[0]][start[1]] - threshold,
-		img->pixels[start[0]][start[1]] + threshold, flags, &segment);
+		img->pixels[start[0]][start[1]] + threshold, flags);
 
 	return segment;
+}
+
+void createPositiionsListHelper(TNODE* root, IMG_POS_LIST* posList) {
+	if (!isEmptyList(&root->nextPossiblePositions)) {
+		while (true)
+		{
+		
+		}
+	}
+}
+
+IMG_POS_LIST* createPositionsList(SEGMENT segment) {
+
+}
+
+
+int findAllSegments(GRAY_IMAGE* img, unsigned char threshold, IMG_POS_LIST** segments) {
+
+	SEGMENT segment;
+	bool** flags = memoryAllocationMultiBoolArray(img->cols, img->rows);
+	IMG_POS pos;
+
+	for (int i = 0; i < img->rows; i++)
+	{
+		for (int j = 0; j < img->cols; j++)
+		{
+			if (flags[i][j] == false) {
+				pos[0] = i;
+				pos[1] = j;
+
+				segment.root = findSingleSegmentHelper(img, pos, img->pixels[pos[0]][pos[1]] - threshold,
+					img->pixels[pos[0]][pos[1]] + threshold, flags);
+			}
+		}
+	}
+
+
 
 
 }
