@@ -62,5 +62,8 @@ void printGrayImagePixels(GRAY_IMAGE* grayImage);
 SEGMENT findSingleSegment(GRAY_IMAGE* img, IMG_POS start, unsigned char threshold);
 void printSegment(SEGMENT s, GRAY_IMAGE grayImage);
 int findAllSegments(GRAY_IMAGE* img, unsigned char threshold, IMG_POS_LIST** segments);
+IMG_POS_LIST* createPositionsList(SEGMENT segment);
+void printPosList(IMG_POS_LIST lst);
+GRAY_IMAGE* colorSegments(IMG_POS_LIST* segments, unsigned int size);
 
 #endif

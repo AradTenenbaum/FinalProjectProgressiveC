@@ -11,8 +11,10 @@ bool isEmptyList(TNODE_LIST* lst);
 RGB** memoryAllocationMultiPixelArray(int width, int height) {
 	RGB** pixels;
 	pixels = (RGB**)malloc(sizeof(RGB*) * height);
+	memoryAndFileValidation(pixels);
 	for (int i = 0; i < height; i++) {
 		pixels[i] = (RGB*)malloc(sizeof(RGB) * width);
+		memoryAndFileValidation(pixels[i]);
 	}
 	return pixels;
 }
@@ -213,7 +215,7 @@ GRAY_IMAGE* readPGM(char* fname) {
 }
 
 
-// List general functions
+// Segment List general functions
 void makeEmptyList(TNODE_LIST* lst)
 {
 	lst->head = NULL;
@@ -335,26 +337,114 @@ SEGMENT findSingleSegment(GRAY_IMAGE* img, IMG_POS start, unsigned char threshol
 	return segment;
 }
 
+// Positions List general functions
+void makeEmptyPosList(IMG_POS_LIST* lst)
+{
+	lst->head = NULL;
+	lst->tail = NULL;
+}
+
+bool isEmptyPosList(IMG_POS_LIST* lst)
+{
+	if (lst->head == NULL)
+		return true;
+	else
+		return false;
+}
+
+IMG_POS_NODE* createNewPosListNode(IMG_POS* data, IMG_POS_NODE* next, IMG_POS_NODE* prev)
+{
+	IMG_POS_NODE* output;
+	// Create the node
+	output = (IMG_POS_NODE*)malloc(sizeof(IMG_POS_NODE));
+	memoryAndFileValidation(output);
+
+	//memoryAndFileValidation(output->position);
+	output->position[0] = (*data)[0];
+	output->position[1] = (*data)[1];
+	// Point the position to the next
+	output->next = next;
+	// Point the previus position
+	output->prev = prev;
+
+	return output;
+}
+
+void insertNodeToEndPosList(IMG_POS_LIST* lst, IMG_POS_NODE* newTail)
+{
+	if (isEmptyPosList(lst) == true)
+	{
+		newTail->prev = NULL;
+		lst->head = newTail;
+		lst->tail = newTail;
+	}
+	else
+	{
+		newTail->prev = lst->tail;
+		lst->tail->next = newTail;
+		lst->tail = newTail;
+	}
+}
+
+// Create a node and insert into the end of the list
+void insertDataToEndPosList(IMG_POS_LIST* lst, IMG_POS_NODE* data)
+{
+	if (data != NULL) {
+		IMG_POS_NODE* newTail;
+		newTail = createNewPosListNode(data, NULL, NULL);
+		insertNodeToEndPosList(lst, newTail);
+	}
+}
+
+void printPosList(IMG_POS_LIST lst) {
+	IMG_POS_NODE* curr = lst.head;
+	while (curr != NULL)
+	{
+		printf("(%d,%d) ", curr->position[0], curr->position[1]);
+		curr = curr->next;
+	}
+	printf("\n");
+}
+
 void createPositiionsListHelper(TNODE* root, IMG_POS_LIST* posList) {
+	TNODE_LNODE* curr = root->nextPossiblePositions.head;
 	if (!isEmptyList(&root->nextPossiblePositions)) {
-		while (true)
+		while (curr != NULL)
 		{
-		
+			createPositiionsListHelper(curr->node, posList);
+			insertDataToEndPosList(posList, &(curr->node->position));
+			curr = curr->next;
 		}
 	}
 }
 
 IMG_POS_LIST* createPositionsList(SEGMENT segment) {
-
+	IMG_POS_LIST* imgPosList;
+	imgPosList = malloc(sizeof(IMG_POS_LIST));
+	// Init list
+	makeEmptyPosList(imgPosList);
+	// Add root
+	insertDataToEndPosList(imgPosList, segment.root->position);
+	// Function that adds all positions except the root
+	createPositiionsListHelper(segment.root, imgPosList);
+	return imgPosList;
 }
 
+void insertPosListToPosListArray(IMG_POS_LIST** segments, IMG_POS_LIST lst, int* size) {
+	(*size)++;
+	//IMG_POS_LIST** newSegments = (IMG_POS_LIST**)realloc(segments, sizeof(IMG_POS_LIST*) * (*size));
+	//memoryAndFileValidation(newSegments);
+	(*segments)[(*size) - 1] = lst;
+}
 
 int findAllSegments(GRAY_IMAGE* img, unsigned char threshold, IMG_POS_LIST** segments) {
-
 	SEGMENT segment;
 	bool** flags = memoryAllocationMultiBoolArray(img->cols, img->rows);
 	IMG_POS pos;
+	IMG_POS_LIST posList;
+	int size = 0;
 
+	
 	for (int i = 0; i < img->rows; i++)
 	{
 		for (int j = 0; j < img->cols; j++)
@@ -365,11 +455,56 @@ int findAllSegments(GRAY_IMAGE* img, unsigned char threshold, IMG_POS_LIST** seg
 
 				segment.root = findSingleSegmentHelper(img, pos, img->pixels[pos[0]][pos[1]] - threshold,
 					img->pixels[pos[0]][pos[1]] + threshold, flags);
+
+				posList = *(createPositionsList(segment));
+
+				insertPosListToPosListArray(segments, posList, &size);
+
+				/*
+				for (int i = 0; i < size; i++)
+				{
+					printf("segment_val: %d,%d\n", (*segments)[i].head->position[0], (*segments)[i].head->position[1]);
+				}
+				*/
+
 			}
 		}
 	}
+	*segments = realloc(*segments, sizeof(IMG_POS_LIST) * size);
+	memoryAndFileValidation(*segments);
+	return size;
+}
 
+GRAY_IMAGE* colorSegments(IMG_POS_LIST* segments, unsigned int size) {
 
+	GRAY_IMAGE* grayImage;
+	grayImage = malloc(sizeof(GRAY_IMAGE));
+	IMG_POS_NODE* curr;
+	int width = 0, height = 0;
 
+	// Get rows and cols
+	for (int i = 0; i < size; i++)
+	{
+		curr = segments[i].head;
+		while (curr != NULL) {
+			if (curr->position[0] > height) height = curr->position[0];
+			if (curr->position[1] > width) width = curr->position[1];
+			curr = curr->next;
+		}
+	}
+	grayImage->cols = width + 1;
+	grayImage->rows = height + 1;
+	grayImage->pixels = memoryAllocationMultiCharArray(width + 1, height + 1);
 
+	// Insert data into pixels array
+	for (int i = 0; i < size; i++)
+	{
+		curr = segments[i].head;
+		while (curr != NULL) {
+			grayImage->pixels[curr->position[0]][curr->position[1]] = (i * (255 / (size - 1)));
+			curr = curr->next;
+		}
+	}
+
+	return grayImage;
 }
