@@ -40,5 +40,8 @@
     <None Include="test1.pgm">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="test.bin">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

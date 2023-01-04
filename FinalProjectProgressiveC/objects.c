@@ -508,3 +508,101 @@ GRAY_IMAGE* colorSegments(IMG_POS_LIST* segments, unsigned int size) {
 
 	return grayImage;
 }
+
+char* byte_to_binary(char x)
+{
+	static char b[9];
+	b[0] = '\0';
+
+	char z;
+	for (z = 127; z > 0; z >>= 1)
+	{
+		strcat(b, ((x & z) == z) ? "1" : "0");
+	}
+
+	return b;
+}
+
+unsigned char convertCharTo7Bit(unsigned char c, unsigned char next, int offset) {
+	unsigned char newChar = c << (offset + 1);	
+	newChar = newChar + (next >> (7 - (offset + 1)));
+	return newChar;
+}
+
+void saveCompressed(char* fname, GRAY_IMAGE* image, unsigned char maxGrayLevel) {
+	FILE* fp = fopen(fname, "wb");
+	memoryAndFileValidation(fp);
+	
+	unsigned char newPixel;
+	unsigned char nextNewPixel;
+	unsigned char combinedPixel;
+	int count = 0;
+
+	fwrite(&(image->rows), sizeof(unsigned short), 1, fp);
+	fwrite(&(image->cols), sizeof(unsigned short), 1, fp);
+
+	for (int i = 0; i < image->rows; i++)
+	{
+		for (int j = 0; j < image->cols; j++)
+		{
+			newPixel = (image->pixels[i][j] * maxGrayLevel) / 255;
+			// case: last pixel
+			if (i == (image->rows - 1) && j == (image->cols - 1)) nextNewPixel = 0;
+			// case: last pixel in row
+			else if (j == (image->cols - 1)) nextNewPixel = ((image->pixels[i + 1][0] * maxGrayLevel) / 255);
+			// normal case
+			else nextNewPixel = ((image->pixels[i][j + 1] * maxGrayLevel) / 255);
+
+			combinedPixel = convertCharTo7Bit(newPixel, nextNewPixel, count%7);
+			fwrite(&(combinedPixel), sizeof(char), 1, fp);
+
+			count++;
+		}
+	}
+
+
+	fclose(fp);
+}
+
+char* getNewFileNameBinToPgm(char* fname) {
+	int length = strlen(fname);
+	char* fnameTemp = malloc(sizeof(char) * length);
+	strcpy(fnameTemp, fname);
+	fnameTemp[length - 1] = 'm';
+	fnameTemp[length - 2] = 'g';
+	fnameTemp[length - 3] = 'p';
+	return fnameTemp;
+}
+
+void convertCompressedImageToPGM(char* fname) {
+	FILE* fpBin = fopen(fname, "rb");
+	memoryAndFileValidation(fpBin);
+
+	char* newFileName = getNewFileNameBinToPgm(fname);
+
+	FILE* fpPGM = fopen(newFileName, "w");
+	memoryAndFileValidation(fpPGM);
+
+	unsigned short rows;
+	unsigned short cols;
+
+	fread(&rows, sizeof(unsigned short), 1, fpBin);
+	fread(&cols, sizeof(unsigned short), 1, fpBin);
+
+	fprintf(fpPGM, "P2\n");
+	fprintf(fpPGM, "%d %d\n", cols, rows);
+
+	int maxLocation = ftell(fpPGM);
+	printf("max: %d", maxLocation);
+
+	fprintf(fpPGM, "test");
+
+	fseek(fpPGM, maxLocation, SEEK_SET);
+
+	fprintf(fpPGM, "test2");
+
+
+	fclose(fpBin);
+	fclose(fpPGM);
+
+}

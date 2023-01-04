@@ -136,6 +136,7 @@
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="test.bin" />
     <None Include="test1.pgm" />
     <None Include="test1.ppm" />
   </ItemGroup>

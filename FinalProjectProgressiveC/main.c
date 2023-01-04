@@ -30,5 +30,11 @@ void main() {
 	*/
 
 	GRAY_IMAGE* newGrayImage = colorSegments(*segments, size);
-	printGrayImagePixels(newGrayImage);
+	//printGrayImagePixels(newGrayImage);
+
+	//saveCompressed("test.bin", newGrayImage, 120);
+
+	convertCompressedImageToPGM("test.bin");
+
+
 }
