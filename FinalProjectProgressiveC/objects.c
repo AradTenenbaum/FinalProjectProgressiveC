@@ -509,18 +509,14 @@ GRAY_IMAGE* colorSegments(IMG_POS_LIST* segments, unsigned int size) {
 	return grayImage;
 }
 
-char* byte_to_binary(char x)
+void byte_to_binary(unsigned char x)
 {
-	static char b[9];
-	b[0] = '\0';
-
-	char z;
-	for (z = 127; z > 0; z >>= 1)
+	unsigned char z;
+	for (z = 128; z > 0; z >>= 1)
 	{
-		strcat(b, ((x & z) == z) ? "1" : "0");
+		printf(((x & z) == z) ? "1" : "0");
 	}
-
-	return b;
+	printf("\n");
 }
 
 unsigned char convertCharTo7Bit(unsigned char c, unsigned char next, int offset) {
@@ -536,7 +532,9 @@ void saveCompressed(char* fname, GRAY_IMAGE* image, unsigned char maxGrayLevel) 
 	unsigned char newPixel;
 	unsigned char nextNewPixel;
 	unsigned char combinedPixel;
+	int offset = 0;
 	int count = 0;
+	bool isSet = true;
 
 	fwrite(&(image->rows), sizeof(unsigned short), 1, fp);
 	fwrite(&(image->cols), sizeof(unsigned short), 1, fp);
@@ -545,18 +543,28 @@ void saveCompressed(char* fname, GRAY_IMAGE* image, unsigned char maxGrayLevel) 
 	{
 		for (int j = 0; j < image->cols; j++)
 		{
-			newPixel = (image->pixels[i][j] * maxGrayLevel) / 255;
-			// case: last pixel
-			if (i == (image->rows - 1) && j == (image->cols - 1)) nextNewPixel = 0;
-			// case: last pixel in row
-			else if (j == (image->cols - 1)) nextNewPixel = ((image->pixels[i + 1][0] * maxGrayLevel) / 255);
-			// normal case
-			else nextNewPixel = ((image->pixels[i][j + 1] * maxGrayLevel) / 255);
+			offset = count % 7;
 
-			combinedPixel = convertCharTo7Bit(newPixel, nextNewPixel, count%7);
-			fwrite(&(combinedPixel), sizeof(char), 1, fp);
+			// if count 7 next char
+			if (offset == 0 && !(i == 0 && j == 0) && isSet) isSet = false;
+			else isSet = true;
 
-			count++;
+			if (isSet) {
+
+				newPixel = (image->pixels[i][j] * maxGrayLevel) / 255;
+				// case: last pixel
+				if (i == (image->rows - 1) && j == (image->cols - 1)) nextNewPixel = 0;
+				// case: last pixel in row
+				else if (j == (image->cols - 1)) nextNewPixel = ((image->pixels[i + 1][0] * maxGrayLevel) / 255);
+				// normal case
+				else nextNewPixel = ((image->pixels[i][j + 1] * maxGrayLevel) / 255);
+
+				combinedPixel = convertCharTo7Bit(newPixel, nextNewPixel, offset);
+				fwrite(&(combinedPixel), sizeof(char), 1, fp);
+
+				count++;
+			}
+
 		}
 	}
 
@@ -574,6 +582,16 @@ char* getNewFileNameBinToPgm(char* fname) {
 	return fnameTemp;
 }
 
+unsigned char convert7BitToChar(unsigned char bit7, unsigned char prev, int offset) {
+
+	unsigned char helper = (255 >> (7 - offset + 1));
+	unsigned char prevSave = prev & helper;
+	prevSave = prevSave << (7 - offset);
+
+	unsigned char newChar = (bit7 >> (offset + 1)) + prevSave;
+	return newChar;
+}
+
 void convertCompressedImageToPGM(char* fname) {
 	FILE* fpBin = fopen(fname, "rb");
 	memoryAndFileValidation(fpBin);
@@ -585,6 +603,15 @@ void convertCompressedImageToPGM(char* fname) {
 
 	unsigned short rows;
 	unsigned short cols;
+	unsigned char value;
+	unsigned char prevValue = 0;
+	int count = 0;
+	int offset = 0;
+	unsigned char fixedValue;
+	unsigned char maxValue = 0;
+
+	bool isLeftOver = false;
+	unsigned char leftOver = 0;
 
 	fread(&rows, sizeof(unsigned short), 1, fpBin);
 	fread(&cols, sizeof(unsigned short), 1, fpBin);
@@ -593,14 +620,64 @@ void convertCompressedImageToPGM(char* fname) {
 	fprintf(fpPGM, "%d %d\n", cols, rows);
 
 	int maxLocation = ftell(fpPGM);
-	printf("max: %d", maxLocation);
 
-	fprintf(fpPGM, "test");
+	// Save location for the max value
+	fprintf(fpPGM, "   \n");
+
+	int i = 0;
+	int j = 0;
+
+	while (i < rows) {
+		while (j < cols) {
+
+			if (isLeftOver) {
+				isLeftOver = false;
+				fprintf(fpPGM, "%3d ", leftOver);
+				j++;
+			}
+
+			offset = count % 7;
+
+			fread(&value, sizeof(unsigned char), 1, fpBin);
+
+			fixedValue = convert7BitToChar(value, prevValue, offset);
+
+			/*
+			printf("pixel: ");
+			byte_to_binary(value);
+			printf("prev: ");
+			byte_to_binary(prevValue);
+			printf("new: ");
+			byte_to_binary(fixedValue);
+			*/
+
+			fprintf(fpPGM, "%3d ", fixedValue);
+
+			if (offset == 6) {
+				if (j < (cols - 1)) {
+					fprintf(fpPGM, "%3d ", (value & 127));
+					j++;
+				}
+				else {
+					isLeftOver = true;
+					leftOver = (value & 127);
+				}
+			}
+
+			if (fixedValue > maxValue) maxValue = fixedValue;
+			
+			prevValue = value;
+			count++;
+			j++;
+		}
+		j = 0;
+		i++;
+		fprintf(fpPGM, "\n");
+	}
+
 
 	fseek(fpPGM, maxLocation, SEEK_SET);
-
-	fprintf(fpPGM, "test2");
-
+	fprintf(fpPGM, "%d", maxValue);
 
 	fclose(fpBin);
 	fclose(fpPGM);
