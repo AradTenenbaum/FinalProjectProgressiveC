@@ -145,11 +145,11 @@
     <None Include="PPPBinarybw3.pgm" />
     <None Include="PPPBinarybw4.pgm" />
     <None Include="PPPText.pgm" />
-    <None Include="test1.pgm" />
     <None Include="test1.ppm" />
     <None Include="test1bw2.pgm" />
     <None Include="test1bw3.pgm" />
     <None Include="test1bw4.pgm" />
+    <None Include="testing.pgm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
