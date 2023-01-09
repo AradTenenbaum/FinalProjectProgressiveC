@@ -69,8 +69,10 @@ char* simplestrtok(char* str, char delimiter)
 char** memoryAllocationMultiCharArray(int width, int height) {
 	char** pixels;
 	pixels = (char**)malloc(sizeof(char*) * height);
+	memoryAndFileValidation(pixels);
 	for (int i = 0; i < height; i++) {
 		pixels[i] = (char*)malloc(sizeof(char) * width);
+		memoryAndFileValidation(pixels[i]);
 	}
 	return pixels;
 }
@@ -78,8 +80,10 @@ char** memoryAllocationMultiCharArray(int width, int height) {
 bool** memoryAllocationMultiBoolArray(int width, int height) {
 	bool** flags;
 	flags = (bool**)malloc(sizeof(bool*) * height);
+	memoryAndFileValidation(flags);
 	for (int i = 0; i < height; i++) {
 		flags[i] = (bool*)calloc(width, sizeof(bool));
+		memoryAndFileValidation(flags[i]);
 	}
 	return flags;
 }
