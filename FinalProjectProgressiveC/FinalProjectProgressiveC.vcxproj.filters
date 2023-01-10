@@ -24,6 +24,9 @@
     <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Mobjs.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="objects.h">
@@ -32,12 +35,45 @@
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="tools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="test1.pgm">
+      <Filter>Source Files</Filter>
+    </None>
     <None Include="test1.ppm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="test1.pgm">
+    <None Include="download.ppm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="download.pgm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="test1bw2.pgm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="test1bw3.pgm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="test1bw4.pgm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="PPP.pgm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="PPPText.pgm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="PPPBinarybw2.pgm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="PPPBinarybw3.pgm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="PPPBinarybw4.pgm">
       <Filter>Source Files</Filter>
     </None>
     <None Include="test.bin">

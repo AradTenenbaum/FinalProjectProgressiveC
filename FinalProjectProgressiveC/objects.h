@@ -5,6 +5,7 @@
 #define WIDTH 0
 #define HEIGHT 1
 #define MAX_VALUE 2
+#define BUFFER_SIZE 256
 
 typedef struct rgb {
 	unsigned char r, g, b;

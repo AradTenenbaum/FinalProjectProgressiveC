@@ -128,18 +128,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.c" />
+    <ClCompile Include="Mobjs.c" />
     <ClCompile Include="objects.c" />
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="objects.h" />
+    <ClInclude Include="tools.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="test.bin" />
-    <None Include="test1.pgm" />
+    <None Include="download.pgm" />
+    <None Include="download.ppm" />
+    <None Include="PPP.pgm" />
+    <None Include="PPPBinarybw2.pgm" />
+    <None Include="PPPBinarybw3.pgm" />
+    <None Include="PPPBinarybw4.pgm" />
+    <None Include="PPPText.pgm" />
     <None Include="test1.ppm" />
-    <None Include="test2.ppm" />
+    <None Include="test1bw2.pgm" />
+    <None Include="test1bw3.pgm" />
+    <None Include="test1bw4.pgm" />
     <None Include="testing.pgm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

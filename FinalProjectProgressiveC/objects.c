@@ -214,7 +214,6 @@ GRAY_IMAGE* readPGM(char* fname) {
 	return grayImage;
 }
 
-
 // Segment List general functions
 void makeEmptyList(TNODE_LIST* lst)
 {
@@ -445,7 +444,6 @@ int findAllSegments(GRAY_IMAGE* img, unsigned char threshold, IMG_POS_LIST** seg
 	int size = 0;
 	unsigned char max;
 	unsigned char min;
-
 	
 	for (int i = 0; i < img->rows; i++)
 	{
@@ -470,12 +468,6 @@ int findAllSegments(GRAY_IMAGE* img, unsigned char threshold, IMG_POS_LIST** seg
 
 				insertPosListToPosListArray(segments, posList, &size);
 
-				/*
-				for (int i = 0; i < size; i++)
-				{
-					printf("segment_val: %d,%d\n", (*segments)[i].head->position[0], (*segments)[i].head->position[1]);
-				}
-				*/
 
 			}
 		}
@@ -651,15 +643,6 @@ void convertCompressedImageToPGM(char* fname) {
 			fread(&value, sizeof(unsigned char), 1, fpBin);
 
 			fixedValue = convert7BitToChar(value, prevValue, offset);
-
-			/*
-			printf("pixel: ");
-			byte_to_binary(value);
-			printf("prev: ");
-			byte_to_binary(prevValue);
-			printf("new: ");
-			byte_to_binary(fixedValue);
-			*/
 
 			fprintf(fpPGM, "%3d ", fixedValue);
 
