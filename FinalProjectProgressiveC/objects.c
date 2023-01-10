@@ -521,6 +521,16 @@ void byte_to_binary(unsigned char x)
 	printf("\n");
 }
 
+char* getNewFileNamePgmToBin(char* fname) {
+	int length = strlen(fname);
+	char* fnameTemp = malloc(sizeof(char) * length);
+	strcpy(fnameTemp, fname);
+	fnameTemp[length - 3] = 'b';
+	fnameTemp[length - 2] = 'i';
+	fnameTemp[length - 1] = 'n';
+	return fnameTemp;
+}
+
 unsigned char convertCharTo7Bit(unsigned char c, unsigned char next, int offset) {
 	unsigned char newChar = c << (offset + 1);	
 	newChar = newChar + (next >> (7 - (offset + 1)));
@@ -528,7 +538,10 @@ unsigned char convertCharTo7Bit(unsigned char c, unsigned char next, int offset)
 }
 
 void saveCompressed(char* fname, GRAY_IMAGE* image, unsigned char maxGrayLevel) {
-	FILE* fp = fopen(fname, "wb");
+
+	char* newFileName = getNewFileNamePgmToBin(fname);
+
+	FILE* fp = fopen(newFileName, "wb");
 	memoryAndFileValidation(fp);
 	
 	unsigned char newPixel;
