@@ -139,6 +139,8 @@
     <None Include="test.bin" />
     <None Include="test1.pgm" />
     <None Include="test1.ppm" />
+    <None Include="test2.ppm" />
+    <None Include="testing.pgm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

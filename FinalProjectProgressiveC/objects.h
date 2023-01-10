@@ -67,7 +67,7 @@ void printPosList(IMG_POS_LIST lst);
 GRAY_IMAGE* colorSegments(IMG_POS_LIST* segments, unsigned int size);
 void saveCompressed(char* fname, GRAY_IMAGE* image, unsigned char maxGrayLevel);
 void convertCompressedImageToPGM(char* fname);
-char convertCharTo7Bit(char c, char next, int offset);
+unsigned char convertCharTo7Bit(unsigned char c, unsigned char next, int offset);
 void byte_to_binary(unsigned char x);
 
 #endif

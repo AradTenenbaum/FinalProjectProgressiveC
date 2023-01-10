@@ -289,7 +289,7 @@ IMG_POS* newPosition(IMG_POS current, unsigned short addRow, unsigned short addC
 }
 
 TNODE* findSingleSegmentHelper(GRAY_IMAGE* img, IMG_POS start
-, char min, char max, bool** flags) {
+, unsigned char min, unsigned char max, bool** flags) {
 
 	if (start[0] < 0 || start[0] >= img->rows ||
 		start[1] < 0 || start[1] >= img->cols || 
@@ -443,6 +443,8 @@ int findAllSegments(GRAY_IMAGE* img, unsigned char threshold, IMG_POS_LIST** seg
 	IMG_POS pos;
 	IMG_POS_LIST posList;
 	int size = 0;
+	unsigned char max;
+	unsigned char min;
 
 	
 	for (int i = 0; i < img->rows; i++)
@@ -453,8 +455,16 @@ int findAllSegments(GRAY_IMAGE* img, unsigned char threshold, IMG_POS_LIST** seg
 				pos[0] = i;
 				pos[1] = j;
 
-				segment.root = findSingleSegmentHelper(img, pos, img->pixels[pos[0]][pos[1]] - threshold,
-					img->pixels[pos[0]][pos[1]] + threshold, flags);
+				max = img->pixels[pos[0]][pos[1]] + threshold;
+				min = img->pixels[pos[0]][pos[1]] - threshold;
+				if ((img->pixels[pos[0]][pos[1]] + threshold) > 255) {
+					max = 255;
+				}
+				if ((img->pixels[pos[0]][pos[1]] - threshold) < 0) {
+					min = 0;
+				}
+
+				segment.root = findSingleSegmentHelper(img, pos, min, max, flags);
 
 				posList = *(createPositionsList(segment));
 
@@ -683,3 +693,4 @@ void convertCompressedImageToPGM(char* fname) {
 	fclose(fpPGM);
 
 }
+

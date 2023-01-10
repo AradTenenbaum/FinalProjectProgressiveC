@@ -43,5 +43,11 @@
     <None Include="test.bin">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="test2.ppm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="testing.pgm">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
