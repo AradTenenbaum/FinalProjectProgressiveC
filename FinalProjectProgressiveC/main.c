@@ -3,19 +3,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "objects.h"
-#include "tools.h"
+#include "convert.h"
+#include "segment.h"
+#include "compress.h"
 
+// Task 12, a menu of all the functions
 void main() {
-	/*GRAY_IMAGE* gi;
-	gi = readPGM("test1.pgm");
-	IMG_POS p;
-	p[0] = 1;
-	p[1] = 15;
-	IMG_POS_LIST** segments;
-	segments = malloc(sizeof(IMG_POS_LIST*));
-	*segments = malloc(sizeof(IMG_POS_LIST) * gi->cols * gi->rows);
-	int size = findAllSegments(gi, 2, segments);
-	*/
+
 	int flag = 1;
 	GRAY_IMAGE* gi = NULL;
 	COLOR_IMAGE* ci = NULL;

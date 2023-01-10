@@ -4,12 +4,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "utils.h"
-#include "tools.h"
+#include "convert.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-
+// Convert a ppm file to pgm
 void convertPPMToPGM(char* fname)
 {
     // Open the PPM file 
@@ -17,10 +17,11 @@ void convertPPMToPGM(char* fname)
     memoryAndFileValidation(ppm_file);
     COLOR_IMAGE* ppm = readPPM(fname);
 
+    // Get the max depth, width and length
     int values[3];
     getPPMValues(ppm_file,values);
 
-    char pgmName[30];
+    char pgmName[100];
     strcpy(pgmName, fname);
     strcat(pgmName, ".pgm");
 
@@ -31,25 +32,28 @@ void convertPPMToPGM(char* fname)
     memoryAndFileValidation(pgm_file);
 
     char magic_number[3];
-    int width = values[0], height = values[1], max_color = values[2];
+    int width = values[WIDTH], height = values[HEIGHT], max_color = values[MAX_VALUE];
     // Allocate memory for the PGM image data
     GRAY_IMAGE* image = malloc(sizeof(GRAY_IMAGE) * (width * height * 3));
     memoryAndFileValidation(image);
 
+    // Go over pixels array
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
         {
             int r = ppm->pixels[i][j].r, g = ppm->pixels[i][j].g, b = ppm->pixels[i][j].b;
+            // Calculate the gray value
             int gray = (r + g + b) / 3;
+            // Insert value to array
             image[i * width + j].pixels = gray;
         }
     }
 
-    
+    // Print headers to file
     fprintf(pgm_file, "P2\n%d %d\n%d\n", width, height, max_color);
 
-
+    // Print the gray pixels to file
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             fprintf(pgm_file, "%3d ", image[i * width + j].pixels);
@@ -67,41 +71,17 @@ void convertPPMToPGM(char* fname)
    
 }
 
-void remove_substring(char* s, char* toremove)
-{
-    // Get the length of the substring to remove
-    int len = strlen(toremove);
-
-    // Pointers to the start and end of the string
-    char* start = s, * end = s + strlen(s);
-
-    // Loop through the string until we reach the end
-    while (start < end)
-    {
-        // Check if the substring to remove is found at the current position
-        if (strncmp(start, toremove, len) == 0)
-        {
-            // If it is, shift the rest of the string to the left to overwrite the substring
-            memmove(start, start + len, end - start - len + 1);
-
-            // Update the end pointer to reflect the new length of the string
-            end -= len;
-        }
-        else
-        {
-            // If the substring was not found, move to the next character
-            ++start;
-        }
-    }
-}
-
+// Get the important values
 void getPPMValues(FILE* ppm_file ,int* values)
 {
     char buffer[MAX_LINE_LENGTH];
     char* num;
+    // Get line from file
     fgets(buffer, MAX_LINE_LENGTH, ppm_file);
+    // Ignore comments
     if (buffer[0] == '#') fgets(buffer, MAX_LINE_LENGTH, ppm_file);
 
+    // If buffer contain only P3 header read the next line
     if (strlen(buffer) <= 3) {
         fgets(buffer, MAX_LINE_LENGTH, ppm_file);
         if (buffer[0] == '#') fgets(buffer, MAX_LINE_LENGTH, ppm_file);
@@ -109,6 +89,7 @@ void getPPMValues(FILE* ppm_file ,int* values)
 
     int i = 0;
     num = strtok(buffer, " ");
+    // Get the 3 values
     while (i < 3) {
 
         while ((num != NULL) && (num[0] == '#')) {
@@ -129,13 +110,17 @@ void getPPMValues(FILE* ppm_file ,int* values)
     }
 }
 
-void getPGMValuse(FILE* pgm_file, int* values)
+// 
+void getPGMValues(FILE* pgm_file, int* values)
 {
     char buffer[MAX_LINE_LENGTH];
     char* num;
+    // Get line from file
     fgets(buffer, MAX_LINE_LENGTH, pgm_file);
+    // Ignore comments
     if (buffer[0] == '#') fgets(buffer, MAX_LINE_LENGTH, pgm_file);
 
+    // If buffer contain only P2 header read the next line
     if (strlen(buffer) <= 3) {
         fgets(buffer, MAX_LINE_LENGTH, pgm_file);
         if (buffer[0] == '#') fgets(buffer, MAX_LINE_LENGTH, pgm_file);
@@ -143,6 +128,7 @@ void getPGMValuse(FILE* pgm_file, int* values)
 
     int i = 0;
     num = strtok(buffer, " ");
+    // Get the values from file
     while (i < 3) 
     {
 
@@ -165,16 +151,18 @@ void getPGMValuse(FILE* pgm_file, int* values)
     }
 }
 
+// Convert ppm(p6) to pgm(p5)
 void convertPPMToPGM_Bin(const char* fname) 
 {
-    char pgmName[30];
+    // Prepare name for text file
+    char pgmName[100];
     strcpy(pgmName, fname);
     strcat(pgmName, "TEXT.pgm");
     remove_substring(pgmName, ".ppm");
 
     convertToP2(fname, pgmName);//converting binary ppm file into text pgm file
 
-    char pgmBinName[30];
+    char pgmBinName[100];
     strcpy(pgmBinName, pgmName);
     remove_substring(pgmBinName, "TEXT");
 
@@ -184,6 +172,7 @@ void convertPPMToPGM_Bin(const char* fname)
 
 }
 
+// Convert a ppm p6 to pgm p2
 void convertToP2(char* inputFile, char* outputFile) {
     FILE* in, * out;
     COLOR_IMAGE* image;
@@ -250,6 +239,7 @@ void convertToP2(char* inputFile, char* outputFile) {
     free(image);
 }
 
+// Convert pgm text to binary
 void pgm_text_to_binary(char* text_file, char* binary_file) {
     // Open the text file for reading
     FILE* text = fopen(text_file, "r");
@@ -293,18 +283,20 @@ void pgm_text_to_binary(char* text_file, char* binary_file) {
     fclose(binary);
 }
 
+// Convert pgm file to black and white
 void convertPGMToBW(char* fname)
 {
     GRAY_IMAGE* gi;
     int values[3];
-    char BWFILE2[30];
-    char BWFILE3[30];
-    char BWFILE4[30];
+    char BWFILE2[100];
+    char BWFILE3[100];
+    char BWFILE4[100];
  
     strcpy(BWFILE2, fname);
     strcpy(BWFILE3, fname);
     strcpy(BWFILE4, fname);
 
+    // Fix file names
     remove_substring(BWFILE2, ".pgm");
     remove_substring(BWFILE3, ".pgm");
     remove_substring(BWFILE4, ".pgm");
@@ -319,7 +311,8 @@ void convertPGMToBW(char* fname)
     FILE* pgm_file = fopen(fname, "r");
     memoryAndFileValidation(pgm_file);
 
-    getPGMValuse(pgm_file, values);
+    // Get the max depth, width and height from the pgm file
+    getPGMValues(pgm_file, values);
 
     FILE* pgmBW2_file = fopen(BWFILE2, "w");
     memoryAndFileValidation(pgmBW2_file);
@@ -330,7 +323,7 @@ void convertPGMToBW(char* fname)
 
     gi = readPGM(fname);
 
-    int width = values[0], height = values[1], max_color = values[2];
+    int width = values[WIDTH], height = values[HEIGHT], max_color = values[MAX_VALUE];
 
     // Allocate memory for the PGMBW image data
     GRAY_IMAGE* image2 = malloc(sizeof(GRAY_IMAGE) * (width * height * 3));
@@ -344,11 +337,12 @@ void convertPGMToBW(char* fname)
     setImage3(gi, image3, pgm_file, height, width, max_color);
     setImage4(gi, image4, pgm_file, height, width, max_color);
 
+    // Print headers to the new files
     fprintf(pgmBW2_file, "P2\n%d %d\n%d\n", width, height, max_color);
     fprintf(pgmBW3_file, "P2\n%d %d\n%d\n", width, height, max_color);
     fprintf(pgmBW4_file, "P2\n%d %d\n%d\n", width, height, max_color);
 
-
+    // Print pixels into the files
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             fprintf(pgmBW2_file, "%d ", image2[i * width + j].pixels);
@@ -376,6 +370,7 @@ void convertPGMToBW(char* fname)
 
 }
 
+// Convert each pixel to 1 or 0
 void setImage2(GRAY_IMAGE* gi ,GRAY_IMAGE* image2, FILE* pgm_file, int height, int width, int max_color)
 {
     int mask2[] = { 0,2,3,1 };
@@ -386,6 +381,7 @@ void setImage2(GRAY_IMAGE* gi ,GRAY_IMAGE* image2, FILE* pgm_file, int height, i
         for (int j = 0; j < width; j++)
         {
             int B;
+            // Check pixel range
             if (gi->pixels[i][j] >= 0 && gi->pixels[i][j] <= count + D)
                 B = 0;
             if (gi->pixels[i][j] > count + D && gi->pixels[i][j] <= count + 2 * D)
@@ -413,6 +409,7 @@ void setImage2(GRAY_IMAGE* gi ,GRAY_IMAGE* image2, FILE* pgm_file, int height, i
     }
 }
 
+// Convert each pixel to 1 or 0
 void setImage3(GRAY_IMAGE* gi, GRAY_IMAGE* image3, FILE* pgm_file, int height, int width, int max_color)
 {
     int mask3[] = { 2,6,4,5,0,1,8,3,7 };
@@ -423,6 +420,7 @@ void setImage3(GRAY_IMAGE* gi, GRAY_IMAGE* image3, FILE* pgm_file, int height, i
         for (int j = 0; j < width; j++)
         {
             int W;
+            // Check pixel range
             if (gi->pixels[i][j] >= 0 && gi->pixels[i][j] <= count + D)
                 W = 0;
             if (gi->pixels[i][j] > count + D && gi->pixels[i][j] <= count + 2 * D)
@@ -461,6 +459,7 @@ void setImage3(GRAY_IMAGE* gi, GRAY_IMAGE* image3, FILE* pgm_file, int height, i
     }
 }
 
+// Convert each pixel to 1 or 0
 void setImage4(GRAY_IMAGE* gi, GRAY_IMAGE* image4, FILE* pgm_file, int height, int width, int max_color)
 {
     int mask4[] = { 0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5 };
@@ -471,6 +470,7 @@ void setImage4(GRAY_IMAGE* gi, GRAY_IMAGE* image4, FILE* pgm_file, int height, i
         for (int j = 0; j < width; j++)
         {
             int r;
+            // Check pixel range
             if (gi->pixels[i][j] >= 0 && gi->pixels[i][j] <= count + D)
                 r = 0;
             if (gi->pixels[i][j] > count + D && gi->pixels[i][j] <= count + 2 * D)
@@ -522,6 +522,7 @@ void setImage4(GRAY_IMAGE* gi, GRAY_IMAGE* image4, FILE* pgm_file, int height, i
     }
 }
 
+// Convert pgm p5 to pgm p2
 void convert_p5_to_p2(const char* input_filename, const char* output_filename) 
 {
     FILE* in, * out;
@@ -588,21 +589,25 @@ void convert_p5_to_p2(const char* input_filename, const char* output_filename)
 
 }
 
+// Convert pgm p5 to black and white binary
 void convertPGMToBW_Bin(char* fname)
 {
-    char fnameTextFile[30];
-    char fnameTextFileBW2[50];
-    char fnameTextFileBW3[50];
-    char fnameTextFileBW4[50];
-    char fnameBinaryFileBW2[50];
-    char fnameBinaryFileBW3[50];
-    char fnameBinaryFileBW4[50];
+    char fnameTextFile[100];
+    char fnameTextFileBW2[100];
+    char fnameTextFileBW3[100];
+    char fnameTextFileBW4[100];
+    char fnameBinaryFileBW2[100];
+    char fnameBinaryFileBW3[100];
+    char fnameBinaryFileBW4[100];
 
+    // Fix the names
     strcpy(fnameTextFile, fname);
     remove_substring(fnameTextFile, ".pgm");
     strcat(fnameTextFile, "Text.pgm");
 
+    // Convert p5 to p2
     convert_p5_to_p2(fname, fnameTextFile);
+    // Convert pgm p2 to black and white
     convertPGMToBW(fnameTextFile);
 
     strcpy(fnameTextFileBW2, fnameTextFile);
@@ -619,20 +624,20 @@ void convertPGMToBW_Bin(char* fname)
 
     strcpy(fnameBinaryFileBW2, fnameTextFileBW2);
     remove_substring(fnameBinaryFileBW2, "bw2.pgm");
-    strcat(fnameBinaryFileBW2, "Binarybw2.pgm");
+    strcat(fnameBinaryFileBW2, "bw2.bin");
 
     strcpy(fnameBinaryFileBW3, fnameTextFileBW3);
     remove_substring(fnameBinaryFileBW3, "bw3.pgm");
-    strcat(fnameBinaryFileBW3, "Binarybw3.pgm");
+    strcat(fnameBinaryFileBW3, "bw3.bin");
 
     strcpy(fnameBinaryFileBW4, fnameTextFileBW4);
     remove_substring(fnameBinaryFileBW4, "bw4.pgm");
-    strcat(fnameBinaryFileBW4, "Binarybw4.pgm");
+    strcat(fnameBinaryFileBW4, "bw4.bin");
 
+    // Convert each black and white pgm p2 file to p5 
     pgm_text_to_binary(fnameTextFileBW2, fnameBinaryFileBW2);
     pgm_text_to_binary(fnameTextFileBW3, fnameBinaryFileBW3);
     pgm_text_to_binary(fnameTextFileBW4, fnameBinaryFileBW4);
-
 
 
 }

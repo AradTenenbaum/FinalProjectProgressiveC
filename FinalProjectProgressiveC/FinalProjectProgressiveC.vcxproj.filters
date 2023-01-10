@@ -24,7 +24,13 @@
     <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Mobjs.c">
+    <ClCompile Include="convert.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="segment.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="compress.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,54 +41,30 @@
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="tools.h">
+    <ClInclude Include="convert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="segment.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="compress.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="test1.pgm">
+    <None Include="example4p6.ppm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="test1.ppm">
+    <None Include="example4.ppm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="download.ppm">
+    <None Include="test3.ppm">
       <Filter>Source Files</Filter>
     </None>
     <None Include="download.pgm">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="test1bw2.pgm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="test1bw3.pgm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="test1bw4.pgm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="PPP.pgm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="PPPText.pgm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="PPPBinarybw2.pgm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="PPPBinarybw3.pgm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="PPPBinarybw4.pgm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="test.bin">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="test2.ppm">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="testing.pgm">
+    <None Include="download.ppm">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

@@ -60,16 +60,6 @@ COLOR_IMAGE* readPPM(char* fname);
 GRAY_IMAGE* readPGM(char* fname);
 void printColorImagePixels(COLOR_IMAGE* colorImage);
 void printGrayImagePixels(GRAY_IMAGE* grayImage);
-SEGMENT findSingleSegment(GRAY_IMAGE* img, IMG_POS start, unsigned char threshold);
-void printSegment(SEGMENT s, GRAY_IMAGE grayImage);
-int findAllSegments(GRAY_IMAGE* img, unsigned char threshold, IMG_POS_LIST** segments);
-IMG_POS_LIST* createPositionsList(SEGMENT segment);
-void printPosList(IMG_POS_LIST lst);
-GRAY_IMAGE* colorSegments(IMG_POS_LIST* segments, unsigned int size);
-void saveCompressed(char* fname, GRAY_IMAGE* image, unsigned char maxGrayLevel);
-void convertCompressedImageToPGM(char* fname);
-unsigned char convertCharTo7Bit(unsigned char c, unsigned char next, int offset);
-void byte_to_binary(unsigned char x);
 void buildPGMFromGrayImage(GRAY_IMAGE* grayImage, char* fname);
 
 #endif

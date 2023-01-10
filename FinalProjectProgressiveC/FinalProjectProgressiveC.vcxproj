@@ -127,29 +127,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="compress.c" />
     <ClCompile Include="main.c" />
-    <ClCompile Include="Mobjs.c" />
+    <ClCompile Include="convert.c" />
     <ClCompile Include="objects.c" />
+    <ClCompile Include="segment.c" />
     <ClCompile Include="utils.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="compress.h" />
     <ClInclude Include="objects.h" />
-    <ClInclude Include="tools.h" />
+    <ClInclude Include="segment.h" />
+    <ClInclude Include="convert.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="download.pgm" />
     <None Include="download.ppm" />
-    <None Include="PPP.pgm" />
-    <None Include="PPPBinarybw2.pgm" />
-    <None Include="PPPBinarybw3.pgm" />
-    <None Include="PPPBinarybw4.pgm" />
-    <None Include="PPPText.pgm" />
-    <None Include="test1.ppm" />
-    <None Include="test1bw2.pgm" />
-    <None Include="test1bw3.pgm" />
-    <None Include="test1bw4.pgm" />
-    <None Include="testing.pgm" />
+    <None Include="example4.ppm" />
+    <None Include="example4p6.ppm" />
+    <None Include="test3.ppm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

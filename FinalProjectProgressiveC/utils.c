@@ -87,3 +87,42 @@ bool** memoryAllocationMultiBoolArray(int width, int height) {
 	}
 	return flags;
 }
+
+void remove_substring(char* s, char* toremove)
+{
+	// Get the length of the substring to remove
+	int len = strlen(toremove);
+
+	// Pointers to the start and end of the string
+	char* start = s, * end = s + strlen(s);
+
+	// Loop through the string until we reach the end
+	while (start < end)
+	{
+		// Check if the substring to remove is found at the current position
+		if (strncmp(start, toremove, len) == 0)
+		{
+			// If it is, shift the rest of the string to the left to overwrite the substring
+			memmove(start, start + len, end - start - len + 1);
+
+			// Update the end pointer to reflect the new length of the string
+			end -= len;
+		}
+		else
+		{
+			// If the substring was not found, move to the next character
+			++start;
+		}
+	}
+}
+
+
+void byte_to_binary(unsigned char x)
+{
+	unsigned char z;
+	for (z = 128; z > 0; z >>= 1)
+	{
+		printf(((x & z) == z) ? "1" : "0");
+	}
+	printf("\n");
+}
