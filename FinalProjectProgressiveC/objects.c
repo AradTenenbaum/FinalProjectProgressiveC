@@ -690,3 +690,29 @@ void convertCompressedImageToPGM(char* fname) {
 
 }
 
+
+void buildPGMFromGrayImage(GRAY_IMAGE* grayImage, char* fname) {
+
+	FILE* fp = fopen(fname, "w");
+	memoryAndFileValidation(fp);
+	unsigned char max = 0;
+
+	fprintf(fp, "P2\n");
+	fprintf(fp, "%d %d\n", grayImage->cols, grayImage->rows);
+	int maxLocation = ftell(fp);
+	fprintf(fp, "   \n");
+
+	for (int i = 0; i < grayImage->rows; i++) {
+		for (int j = 0; j < grayImage->cols; j++) {
+			if (grayImage->pixels[i][j] > max) max = grayImage->pixels[i][j];
+			fprintf(fp, "%3d ", grayImage->pixels[i][j]);
+		}
+		fprintf(fp, "\n");
+	}
+
+	fseek(fp, maxLocation, SEEK_SET);
+	fprintf(fp, "%d", max);
+
+	fclose(fp);
+
+}

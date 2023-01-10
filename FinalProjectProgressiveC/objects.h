@@ -70,5 +70,6 @@ void saveCompressed(char* fname, GRAY_IMAGE* image, unsigned char maxGrayLevel);
 void convertCompressedImageToPGM(char* fname);
 unsigned char convertCharTo7Bit(unsigned char c, unsigned char next, int offset);
 void byte_to_binary(unsigned char x);
+void buildPGMFromGrayImage(GRAY_IMAGE* grayImage, char* fname);
 
 #endif
