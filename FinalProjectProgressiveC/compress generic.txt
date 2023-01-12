@@ -1,0 +1,150 @@
+
+#include <stdio.h>
+#include <stdbool.h>
+
+void byte_to_binary(unsigned char x)
+{
+	unsigned char z;
+	for (z = 128; z > 0; z >>= 1)
+	{
+		printf(((x & z) == z) ? "1" : "0");
+	}
+	printf("\n");
+}
+
+void test(unsigned char* bytesBefore, unsigned char* bytesAfter, int size) {
+    printf("\nBefore: \n");
+    for(int i = 0; i < size; i++) {
+        byte_to_binary(bytesBefore[i]);
+    }
+    printf("\nAfter: \n");
+    for(int i = 0; i < size; i++) {
+        byte_to_binary(bytesAfter[i]);
+    }
+}
+
+unsigned char* compress(unsigned char* bytes, int size, int maxBytes) {
+    unsigned char* compressedArr = calloc(size, sizeof(unsigned char));
+    int compressedArrIndex = 0;
+    int locationInCurrByte = 0;
+    unsigned char temp;
+    bool isNextByte = false;
+    int leftOverBits = 0;
+    unsigned char helper;
+    
+    for(int i = 0; i < size; i++) {
+        printf("\nstart:\n");
+        leftOverBits = (-1)*(8 - locationInCurrByte - maxBytes);
+        isNextByte = ((locationInCurrByte + maxBytes) >= 8);
+        if(isNextByte) temp = bytes[i] >> (-1)*(8 - locationInCurrByte - maxBytes);
+        else temp = bytes[i] << (8 - locationInCurrByte - maxBytes);
+        
+        printf("byte: ");
+        byte_to_binary(bytes[i]);
+        
+        printf("temp: ");
+        byte_to_binary(temp);
+        
+        
+        locationInCurrByte = (locationInCurrByte + maxBytes)%8;
+        compressedArr[compressedArrIndex] += temp;
+        
+        printf("index:%d compressed: ", compressedArrIndex);
+        byte_to_binary(compressedArr[compressedArrIndex]);
+        
+        if(isNextByte) {
+            compressedArrIndex++;
+            
+            printf("leftOverBits: %d\n", leftOverBits);
+            helper = 255 >> (8 - leftOverBits);
+            
+            printf("Helper: ");
+            byte_to_binary(helper);
+            
+            helper = bytes[i] & helper;
+            compressedArr[compressedArrIndex] += (helper << (8 - leftOverBits));
+            locationInCurrByte = leftOverBits;
+        }
+        
+        printf("index:%d compressed: ", compressedArrIndex);
+        byte_to_binary(compressedArr[compressedArrIndex]);
+    }
+    
+    return compressedArr;
+    
+}
+
+unsigned char* unCompress(unsigned char* compressedArr, int size, int maxBytes) {
+    unsigned char* unCompressedArr = calloc(size, sizeof(unsigned char));
+    unsigned char helper;
+    unsigned char helper2;
+    unsigned char temp;
+    int i = 0;
+    int locationInCurrByte = 0;
+    int unCompressedArrIndex = 0;
+    bool isNextByte = false;
+    
+    while(unCompressedArrIndex < size) {
+        printf("\n--------------test-----------\n");
+        printf("byte: ");
+        byte_to_binary(compressedArr[i]);
+        printf("locationInCurrByte: %d\n", locationInCurrByte);
+        helper = 255 >> (locationInCurrByte); 
+        isNextByte = ((8 - maxBytes - locationInCurrByte) <= 0);
+        if(isNextByte) {
+            temp = helper & compressedArr[i]; 
+            temp = temp << ((-1)*(8 - maxBytes - locationInCurrByte));
+            unCompressedArr[unCompressedArrIndex] += temp;
+            i++;
+            helper = 255 >> ((-1)*(8 - maxBytes - locationInCurrByte));
+            helper = helper ^ 255;
+            temp = compressedArr[i] & helper;
+            temp = temp >> (8 - ((-1)*(8 - maxBytes - locationInCurrByte)));
+            unCompressedArr[unCompressedArrIndex++] += temp;
+            byte_to_binary(unCompressedArr[unCompressedArrIndex-1]);
+            locationInCurrByte = ((-1)*(8 - maxBytes - locationInCurrByte));
+            isNextByte = false;
+        }
+        else {
+            helper2 = (255 >> (maxBytes + locationInCurrByte));
+            // helper2 = helper2 ^ 255;
+            printf("helper2: ");
+            byte_to_binary(helper2);
+            printf("helper1: ");
+            byte_to_binary(helper);
+            helper = helper ^ helper2;
+            //helper = 255 ^ (helper & (255 >> (maxBytes + locationInCurrByte)));
+            
+            temp = helper & compressedArr[i];
+            temp = temp >> (8 - (maxBytes + locationInCurrByte));
+            printf("dist: %d\n", (8 - maxBytes - locationInCurrByte));
+            // helper = helper ^ (255 >> (8 - locationInCurrByte - maxBytes));
+            unCompressedArr[unCompressedArrIndex++] += temp;
+            byte_to_binary(unCompressedArr[unCompressedArrIndex-1]);
+            // temp = temp >> (8 - maxBytes); // 00111111
+            
+            locationInCurrByte = (locationInCurrByte + maxBytes)%8;
+        }
+    }
+    
+}
+
+
+void main()
+{
+    unsigned char* bytes = malloc(sizeof(unsigned char) * 10);
+    bytes[0] = 7;
+    bytes[1] = 6;
+    bytes[2] = 3;
+    bytes[3] = 4;
+    bytes[4] = 5;
+    bytes[5] = 1;
+    bytes[6] = 2;
+    bytes[7] = 2;
+    bytes[8] = 0;
+    bytes[9] = 7;
+    unsigned char* after;
+    after = compress(bytes, 10, 3);
+    // test(bytes, after, 10);
+    unCompress(after, 10, 3);
+}

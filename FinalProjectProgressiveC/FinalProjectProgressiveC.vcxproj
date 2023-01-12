@@ -146,7 +146,11 @@
     <None Include="download.ppm" />
     <None Include="example4.ppm" />
     <None Include="example4p6.ppm" />
+    <None Include="test.pgm" />
     <None Include="test3.ppm" />
+    <None Include="test4.ppm" />
+    <None Include="test5.ppm" />
+    <None Include="test6.pgm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,3 +1,6 @@
+// Final Project
+// Arad Tenenbaum - 212293799
+// Alex Morozov - 324900216
 #define _CRT_SECURE_NO_WARNINGS 
 #include <stdio.h>
 #include <stdlib.h>
@@ -78,7 +81,7 @@ void main() {
 			printf("Please enter a max gray level: ");
 			scanf("%d", &maxGrayLevel);
 
-
+			
 			strcpy(newFileName, "compressed.");
 			strcat(newFileName, fileName);
 

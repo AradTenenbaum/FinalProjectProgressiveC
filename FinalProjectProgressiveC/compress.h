@@ -6,6 +6,9 @@
 
 void saveCompressed(char* fname, GRAY_IMAGE* image, unsigned char maxGrayLevel);
 void convertCompressedImageToPGM(char* fname);
-unsigned char convertCharTo7Bit(unsigned char c, unsigned char next, int offset);
+char* getNewFileNamePgmToBin(char* fname);
+char* getNewFileNameBinToPgm(char* fname);
+unsigned char* unCompress(unsigned char* compressedArr, int size, int maxBytes);
+
 
 #endif

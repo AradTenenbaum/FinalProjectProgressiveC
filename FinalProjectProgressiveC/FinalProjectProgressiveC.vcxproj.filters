@@ -67,5 +67,17 @@
     <None Include="download.ppm">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="test.pgm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="test4.ppm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="test5.ppm">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="test6.pgm">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

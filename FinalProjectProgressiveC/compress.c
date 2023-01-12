@@ -5,22 +5,209 @@
 #include "utils.h"
 #include <string.h>
 
-// convert a char(8 bits) to a 7 bit
-unsigned char convertCharTo7Bit(unsigned char c, unsigned char next, int offset) {
-	unsigned char newChar = c << (offset + 1);
-	newChar = newChar + (next >> (7 - (offset + 1)));
-	return newChar;
+// Get the max byte amount from max gray level
+int getMaxBytes(unsigned char maxGrayLevel) {
+	int counter = 0;
+	while (maxGrayLevel > 0) {
+		maxGrayLevel = maxGrayLevel >> 1;
+		counter++;
+	}
+	return counter;
 }
 
-// convert a 7 bit to a char(8 bits)
-unsigned char convert7BitToChar(unsigned char bit7, unsigned char prev, int offset) {
+void saveCompressed(char* fname, GRAY_IMAGE* image, unsigned char maxGrayLevel) {
+	
+	// Max byte
+	int maxBytes = getMaxBytes(maxGrayLevel);
+	int locationInCurrByte = 0;
+	unsigned char temp;
+	bool isNextByte = false;
+	int leftOverBits = 0;
+	unsigned char helper;
+	unsigned char value;
 
-	unsigned char helper = (255 >> (7 - offset + 1));
-	unsigned char prevSave = prev & helper;
-	prevSave = prevSave << (7 - offset);
+	unsigned char toSave = 0;
 
-	unsigned char newChar = (bit7 >> (offset + 1)) + prevSave;
-	return newChar;
+	char* newFileName = getNewFileNamePgmToBin(fname);
+
+	FILE* fp = fopen(newFileName, "wb");
+	memoryAndFileValidation(fp);
+
+
+	// Write rows, cols and max gray level
+	fwrite(&(image->rows), sizeof(unsigned short), 1, fp);
+	fwrite(&(image->cols), sizeof(unsigned short), 1, fp);
+	fwrite(&(maxGrayLevel), sizeof(unsigned char), 1, fp);
+
+
+	// Go over the pixels
+	for (int i = 0; i < image->rows; i++)
+	{
+		for (int j = 0; j < image->cols; j++) {
+			// Change the value by the formula
+			value = ((image->pixels[i][j] * maxGrayLevel) / 255);
+
+			// check for leftover bits
+			leftOverBits = (-1) * (8 - locationInCurrByte - maxBytes);
+			// If the current index in byte + bytes amount needed is 8 or more
+			// We need to insert a part from the current byte and a part from the next
+			isNextByte = ((locationInCurrByte + maxBytes) >= 8);
+			if (isNextByte) temp = value >> (-1) * (8 - locationInCurrByte - maxBytes);
+			else temp = value << (8 - locationInCurrByte - maxBytes);
+
+			// Calc current index in the byte
+			locationInCurrByte = (locationInCurrByte + maxBytes) % 8;
+			toSave += temp;
+
+			if (isNextByte) {
+				// Write data to memory
+				fwrite(&(toSave), sizeof(char), 1, fp);
+				toSave = 0;
+
+				helper = 255 >> (8 - leftOverBits);
+
+
+
+				helper = value & helper;
+				toSave += (helper << (8 - leftOverBits));
+				locationInCurrByte = leftOverBits;
+			}
+
+		}
+	}
+
+	fclose(fp);
+
+}
+
+
+void convertCompressedImageToPGM(char* fname) {
+	FILE* fpBin = fopen(fname, "rb");
+	memoryAndFileValidation(fpBin);
+
+	char* newFileName = getNewFileNameBinToPgm(fname);
+
+	FILE* fpPGM = fopen(newFileName, "w");
+	memoryAndFileValidation(fpPGM);
+
+	unsigned short rows;
+	unsigned short cols;
+	unsigned char maxGrayLevel;
+	unsigned char helper;
+	unsigned char helper2;
+	unsigned char temp;
+	unsigned char value;
+	int i = 0;
+	int locationInCurrByte = 0;
+	bool isNextByte = false;
+
+
+	// read rows and cols and maxGrayLevel
+	fread(&rows, sizeof(unsigned short), 1, fpBin);
+	fread(&cols, sizeof(unsigned short), 1, fpBin);
+	fread(&maxGrayLevel, sizeof(unsigned char), 1, fpBin);
+
+	// Get max bytes amount
+	int maxBytes = getMaxBytes(maxGrayLevel);
+	int size = rows * cols;
+	int index = 0;
+	unsigned char toSave = 0;
+
+	// Print headers
+	fprintf(fpPGM, "P2\n");
+	fprintf(fpPGM, "%d %d\n", cols, rows);
+	fprintf(fpPGM, "%d\n", maxGrayLevel);
+
+
+	// Insert all compressed data to array
+	// Compressed data must be smaller than amount of pixels
+	unsigned char* data = malloc(sizeof(char)* size);
+	memoryAndFileValidation(data);
+
+	// Read the value first so the feof will work
+	fread(&value, sizeof(unsigned char), 1, fpBin);
+
+	while (feof(fpBin) == 0) {
+		// Insert value to array
+		data[index] = value;
+		// Read the next value
+		fread(&value, sizeof(unsigned char), 1, fpBin);
+		index++;
+	}
+
+	// Un compress the data
+	unsigned char* unCompressedArr = unCompress(data, size, maxBytes);
+
+	// Print data to the file
+	for (int i = 0; i < size; i++)
+	{
+		fprintf(fpPGM, "%3d ", unCompressedArr[i]);
+		// Enter when we insert a full row
+		if (((i+1) % cols == 0) && (i != 0)) fprintf(fpPGM, "\n");
+	}
+
+	
+	fclose(fpBin);
+	fclose(fpPGM);
+	free(data);
+	free(unCompressedArr);
+
+}
+
+// Un compress the array received with size elements
+unsigned char* unCompress(unsigned char* compressedArr, int size, int maxBytes) {
+	unsigned char* unCompressedArr = calloc(size, sizeof(unsigned char));
+	memoryAndFileValidation(unCompressedArr);
+
+	unsigned char helper;
+	unsigned char helper2;
+	unsigned char temp;
+	int i = 0;
+	int locationInCurrByte = 0;
+	int unCompressedArrIndex = 0;
+	bool isNextByte = false;
+
+	// While array is not full
+	while (unCompressedArrIndex < size) {
+		// Use to get the bits from the current index in byte
+		helper = 255 >> (locationInCurrByte);
+		// Check if we need to procceed a byte
+		isNextByte = ((8 - maxBytes - locationInCurrByte) <= 0);
+		if (isNextByte) {
+			// Insert and fix data to temp
+			temp = helper & compressedArr[i];
+			temp = temp << ((-1) * (8 - maxBytes - locationInCurrByte));
+			// Insert to array
+			unCompressedArr[unCompressedArrIndex] += temp;
+			// Procceed in compressed array
+			i++;
+			// Add the left bits of the pixel
+			helper = 255 >> ((-1) * (8 - maxBytes - locationInCurrByte));
+			helper = helper ^ 255;
+			temp = compressedArr[i] & helper;
+			temp = temp >> (8 - ((-1) * (8 - maxBytes - locationInCurrByte)));
+			// Insert to array
+			unCompressedArr[unCompressedArrIndex++] += temp;
+			// Update current index in byte
+			locationInCurrByte = ((-1) * (8 - maxBytes - locationInCurrByte));
+			isNextByte = false;
+		}
+		else {
+			// Get the number in the byte
+			helper2 = (255 >> (maxBytes + locationInCurrByte));
+			helper = helper ^ helper2;
+			// Insert it to temp and fix it
+			temp = helper & compressedArr[i];
+			temp = temp >> (8 - (maxBytes + locationInCurrByte));
+			// Insert value to the array
+			unCompressedArr[unCompressedArrIndex++] += temp;
+			// Update current index in byte
+			locationInCurrByte = (locationInCurrByte + maxBytes) % 8;
+		}
+	}
+
+	return unCompressedArr;
+
 }
 
 // Convert pgm name to bin
@@ -34,59 +221,6 @@ char* getNewFileNamePgmToBin(char* fname) {
 	return fnameTemp;
 }
 
-// Save the compressed gray image to the file
-void saveCompressed(char* fname, GRAY_IMAGE* image, unsigned char maxGrayLevel) {
-
-	char* newFileName = getNewFileNamePgmToBin(fname);
-
-	FILE* fp = fopen(newFileName, "wb");
-	memoryAndFileValidation(fp);
-
-	unsigned char newPixel;
-	unsigned char nextNewPixel;
-	unsigned char combinedPixel;
-	int offset = 0;
-	int count = 0;
-	bool isSet = true;
-
-	// Write rows and cols
-	fwrite(&(image->rows), sizeof(unsigned short), 1, fp);
-	fwrite(&(image->cols), sizeof(unsigned short), 1, fp);
-
-	// Go over the pixels
-	for (int i = 0; i < image->rows; i++)
-	{
-		for (int j = 0; j < image->cols; j++)
-		{
-			offset = count % 7;
-
-			// if count 7 next char
-			if (offset == 0 && !(i == 0 && j == 0) && isSet) isSet = false;
-			else isSet = true;
-
-			if (isSet) {
-
-				newPixel = (image->pixels[i][j] * maxGrayLevel) / 255;
-				// case: last pixel
-				if (i == (image->rows - 1) && j == (image->cols - 1)) nextNewPixel = 0;
-				// case: last pixel in row
-				else if (j == (image->cols - 1)) nextNewPixel = ((image->pixels[i + 1][0] * maxGrayLevel) / 255);
-				// normal case
-				else nextNewPixel = ((image->pixels[i][j + 1] * maxGrayLevel) / 255);
-
-				combinedPixel = convertCharTo7Bit(newPixel, nextNewPixel, offset);
-				fwrite(&(combinedPixel), sizeof(char), 1, fp);
-
-				count++;
-			}
-
-		}
-	}
-
-
-	fclose(fp);
-}
-
 // Convert bin name to pgm
 char* getNewFileNameBinToPgm(char* fname) {
 	int length = strlen(fname);
@@ -96,99 +230,4 @@ char* getNewFileNameBinToPgm(char* fname) {
 	fnameTemp[length - 2] = 'g';
 	fnameTemp[length - 3] = 'p';
 	return fnameTemp;
-}
-
-// Convert compressed file of gray image to a pgm file
-void convertCompressedImageToPGM(char* fname) {
-	FILE* fpBin = fopen(fname, "rb");
-	memoryAndFileValidation(fpBin);
-
-	char* newFileName = getNewFileNameBinToPgm(fname);
-
-	FILE* fpPGM = fopen(newFileName, "w");
-	memoryAndFileValidation(fpPGM);
-
-	unsigned short rows;
-	unsigned short cols;
-	unsigned char value;
-	unsigned char prevValue = 0;
-	int count = 0;
-	int offset = 0;
-	unsigned char fixedValue;
-	unsigned char maxValue = 0;
-
-	bool isLeftOver = false;
-	unsigned char leftOver = 0;
-
-	// read rows and cols
-	fread(&rows, sizeof(unsigned short), 1, fpBin);
-	fread(&cols, sizeof(unsigned short), 1, fpBin);
-
-	// Print headers
-	fprintf(fpPGM, "P2\n");
-	fprintf(fpPGM, "%d %d\n", cols, rows);
-
-	// Save the max location in the file
-	int maxLocation = ftell(fpPGM);
-
-	// Save location for the max value
-	fprintf(fpPGM, "   \n");
-
-	int i = 0;
-	int j = 0;
-
-	// Go over the bin file
-	while (i < rows) {
-		while (j < cols) {
-
-			// Check if there is a byte that we missed while converting
-			if (isLeftOver) {
-				isLeftOver = false;
-				fprintf(fpPGM, "%3d ", leftOver);
-				j++;
-			}
-
-			offset = count % 7;
-
-			// Get the value
-			fread(&value, sizeof(unsigned char), 1, fpBin);
-
-			fixedValue = convert7BitToChar(value, prevValue, offset);
-
-			// Write the value to file
-			fprintf(fpPGM, "%3d ", fixedValue);
-
-			// If offset is 6 the convert function misses a value in the 7 bits of the value
-			if (offset == 6) {
-				if (j < (cols - 1)) {
-					// Print to the file the 7 bits value
-					fprintf(fpPGM, "%3d ", (value & 127));
-					j++;
-				}
-				else {
-					isLeftOver = true;
-					leftOver = (value & 127);
-				}
-			}
-
-			// Save the max value of the pixels
-			if (fixedValue > maxValue) maxValue = fixedValue;
-
-			prevValue = value;
-			count++;
-			j++;
-		}
-		j = 0;
-		i++;
-		fprintf(fpPGM, "\n");
-	}
-
-	// Get back to max pixel value
-	fseek(fpPGM, maxLocation, SEEK_SET);
-	// Print max value to the file
-	fprintf(fpPGM, "%d", maxValue);
-
-	fclose(fpBin);
-	fclose(fpPGM);
-
 }
